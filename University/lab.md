@@ -40,7 +40,7 @@ The network uses the following supernet and considerations:
 
 # Phase 1
 
-![ENCOR - university - phase 1](assets/ENCOR%20-%20university%20-%20phase%201.png)
+![ENCOR - university - phase 1](assets/ENCOR-university-phase-1.png)
 
 The university has tasked you to deploy the network for building `1`. You will need to provide the following vlans. Cable all devices according to the diagram.
 
@@ -95,9 +95,7 @@ Provide a redundant gateway for the IT and RND vlan on D1 and D2. Use `HSRP` ver
 - Enable preemption with a delay of `30` seconds
 - D1 has a priority of `150` and D2 has a priority of `130`
 
-Track the line protocol for interface `g0/1` on D1. If the protocol goes down decrement the hsrp priority with `40`. Use tracking group `5`.
-
-Setup routed ports between R1 and D1/D2. Use the following ip addresses:
+Track the line protocol for interface `g0/1` on D1. If the protocol goes down decrement the hsrp priority with `40`. Use tracking group `5`.Setup routed ports between R1 and D1/D2. Use the following ip addresses:
 
 ```
 D1 - G0/1 - 10.1.11.2/30
