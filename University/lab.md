@@ -63,7 +63,7 @@ Setup spanning tree:
 
 - Use `rapid-pvst` as the spanning-tree protocol.
 - D1 is the root bridge for all client vlans (10,20) and D2 is the secondary root bridge
-- Use root guard on all necessary ports on D1 and D2
+- Use root guard on all necessary ports on D1
 - Use portfast for all edge ports and enable bpduguard on D3
 
 Set a login banner on all devices containing `Unauthorized access prohibited`.
@@ -199,21 +199,56 @@ Setup fully specified, static routes:
 
 # Phase 4
 
-another building is built with IPv4 subnet `10.2.0.0` and IPv6 subnet `2001:db8:2::/48`. 
+Another building is built with IPv4 subnet `10.2.0.0` and IPv6 subnet `2001:db8:2::/48`. 
+
+Configure all devices in building 2:
+
+- Setup ipv6 routing
+- Setup a `lo40` on R2 with the ip address `10.2.40.10` and ipv6 address `2001:db8:2:40::10/64`
+- Setup management interfaces on all switches in vlan 30
+  - D4 with the ip address `10.2.30.20` and ipv6 address `2001:db8:2:30::20/64`
+  - D5 with the ip address `10.2.30.21` and ipv6 address `2001:db8:2:30::21/64`
+
+- Setup SSH access on all devices
+  - use the domain name `uni.local` 
+  - username `uni` password `admin`
+  - `2048 bit` keys. 
+  - Use a standard acl to only allow the `10.1.10.0/24` IT subnet access to the switches via ssh. Name the acl `MGMT_IT`.
+
+Provide connectivity between R1 and R2:
+
+```
+R1 - G0/3 - 203.0.113.1/30
+R1 - G0/3 - 2001:db8:203:113::1/126
+R1 - G0/3 - FE80::1
+R2 - G0/3 - 203.0.113.2/30
+R2 - G0/3 - 2001:db8:203:113::2/126
+R2 - G0/3 - FE80::2
+```
+
+
+Use OSPF as a dynamic routing protocol:
+
+- Use `ospfv3` with process id `10`
+- The router id is `10.x.0.y` where `x` is the building and `y` is the router number.
+  - R2 would have `10.2.0.2` as RID
+
+- Set the reference bandwidth to `10Gbps`
+- Set all interfaces to be passive interfaces by default
+- Use area 0 between routers and use the area id with the building number for all interfaces pointing to a building
+- Using address families
+  - Summarize the networks for both address families on R1 and R2
+
+- Allow R1 to propagate it's default route
+- Configure interface G0/3 on both routers as a `point-to-point` interface
 
 Ospf routing and summarization. The building contains 2 lab environments with overlapping subnets. provide a vrf for each lab environment and provide PAT for each lab network
 
-ospf process id
+vrf definition with address families lab_production lab_development
 
-ospf RID
+vrf forwarding
 
-default route
-
-use point to point networks
-
-passive ospf interfaces where necessary
-
-R2 use R2 as ntp peer and vice versa
+pat for both vrfs
 
 # Phase 5
 
@@ -222,6 +257,35 @@ R2 use R2 as ntp peer and vice versa
 # Phase 6
 
 A remote office was added. Use one router with a loopback and ipsec. aaa rolout for the network
+
+# Phase 7
+
+Management has tasked you with a compliancy project. Use automation to achieve the following:
+
+- Implement the banner `Unauthorized access prohibited` on all devices
+- Setup ntp: 
+
+  - Setup R1 and R2 as ntp peers
+  - Setup all devices in building 1 to use R1 (`10.1.40.10`) as their ntp server and use R2 as backup
+  - Setup all devices in building 2 to use R2 (`10.2.40.10`) as their ntp server and user R1 as backup
+
+- Implement syslog:
+  - Send all logs to `10.1.10.20`. 
+  - Use the management interface of each device as the source ip
+  - Send all logs that are `warning` and above.
+
+- Setup snmp::
+  - Use the community string `unimon` and provide `read-only` access
+  - Only allow the IT vlan to use the `unimon` community. Use the `MGMT_IT` for this purpose
+  - Set the contact to `it@uni.local` and the location to `Building x` where x is the building number
+  - Set the source interface to the `management interface` for snmp traps
+  - Set the host to receive trap interfaces to `10.1.10.20` with a version `2c` community string of `unitrap`
+  - On all switches enable traps for `hsrp`, `spanning-tree` and `ip sla`
+  - On all routers enable traps for `config`, `ospf`, `bgp` and `ip sla`
+- Security
+  - Use a standard acl to only allow the `10.1.10.0/24` IT subnet access to the devices via ssh. Name the acl `MGMT_IT`.
+  - Use a standard IPv6 acl to only allow the `2001:db8:1:30::/64` IT subnet access to the management interface via ssh. Name the acl `MGMT_IT_V6`.
+
 
 # Startup configurations
 
@@ -271,11 +335,27 @@ line con 0
 line vty 0 4
  exec-timeout 0 0
  logging synchronous
- login
 line vty 5 15
  exec-timeout 0 0
  logging synchronous
- login
+end
+```
+
+### R2
+
+```
+hostname R2
+no logging console
+
+line con 0
+ exec-timeout 0 0
+ logging synchronous
+line vty 0 4
+ exec-timeout 0 0
+ logging synchronous
+line vty 5 15
+ exec-timeout 0 0
+ logging synchronous
 end
 ```
 
@@ -293,11 +373,9 @@ line con 0
 line vty 0 4
  exec-timeout 0 0
  logging synchronous
- login
 line vty 5 15
  exec-timeout 0 0
  logging synchronous
- login
 end
 ```
 
@@ -313,11 +391,9 @@ line con 0
 line vty 0 4
  exec-timeout 0 0
  logging synchronous
- login
 line vty 5 15
  exec-timeout 0 0
  logging synchronous
- login
 end
 ```
 
@@ -333,11 +409,44 @@ line con 0
 line vty 0 4
  exec-timeout 0 0
  logging synchronous
- login
 line vty 5 15
  exec-timeout 0 0
  logging synchronous
- login
 end
 ```
 
+### D4
+
+```
+hostname D4
+no logging console
+
+line con 0
+ exec-timeout 0 0
+ logging synchronous
+line vty 0 4
+ exec-timeout 0 0
+ logging synchronous
+line vty 5 15
+ exec-timeout 0 0
+ logging synchronous
+end
+```
+
+### D5
+
+```
+hostname D5
+no logging console
+
+line con 0
+ exec-timeout 0 0
+ logging synchronous
+line vty 0 4
+ exec-timeout 0 0
+ logging synchronous
+line vty 5 15
+ exec-timeout 0 0
+ logging synchronous
+end
+```
