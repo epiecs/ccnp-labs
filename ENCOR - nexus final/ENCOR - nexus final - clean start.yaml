@@ -1,0 +1,1679 @@
+lab:
+  description: "== NETWORKS ==\nR-EDGE1 <> R-EDGE-2\n\t203.0.113.0/30\n    2001:db8:0:113::/64\n\
+    R-EDGE1 <> R-INTERNET\n    198.51.100.0/30\n    2001:db8:0:198::/64\nAREA 0\n\
+    \    10.200.0.0/24\n    2001:db8:200::/64\n    IPSEC\n        10.200.0.0/30\n\
+    \        2001:db8:200:1::/64\n    R1 <> R-EDGE-1\n        10.200.0.4/30\n    \
+    \    2001:db8:200:2::/64\nAREA 2\n    10.2.0.0/16\n    2001:db8:2::/64\n    R1\
+    \ <> R-EDGE-1\n        10.2.100.0/30\n        2001:db8:2:100::/80\n    R1 <> D1\n\
+    \        10.2.100.4/30\n        2001:db8:2:100:1::/80\n    R1 <> D2\n        10.2.100.8/30\n\
+    \        2001:db8:2:100:2::/80\n    VLAN 10\n        10.2.10.0/24\n        2001:db8:2:10::/64\n\
+    \    VLAN 20\n        10.2.20.0/24\n        2001:db8:2:20::/64\nAREA 4\n    10.4.0.0/16\n\
+    \    2001:db8:4::/64\n    R2 <> R-EDGE-2\n        10.4.100.0/30\n        2001:db8:4:100::/80\n\
+    \n== LAB INFO ==\nAll interfaces have been configured on R1, R2, R-EDGE-1, R-EDGE-2\
+    \ AND R-INTERNET\nD1, D2 and A1 have empty configs\n\n== 1\nenable features on\
+    \ D1 and D2\nfeature interface-vlan\nfeature lacp\nfeature hsrp\nfeature vrrpv3\n\
+    feature ospfv3\n\n== 2\nsetup ssh access on D1, D2 and A1\n\n== 3\ncreate vlans\
+    \ on D1, D2 and A1\n- vlan 10 IT\n- vlan 20 RND\n- vlan 999 NAT\n\nsetup vlan\
+    \ interfaces for each vlan on D1 and D2\n10.2.vlan.252 on D1\n2001:db8:2:vlan::252/64\
+    \ on D1\n\n10.2.vlan.253 on D2\n2001:db8:2:vlan::253/64 on D2\n\n== 4\nsetup and\
+    \ etherchannel using interface Po1 between D1 and D2 using lacp\n\nsetup trunks\
+    \ between D1, D2 and A1. Use the native vlan that was setup\n\nint e1/2\nswitchport\n\
+    switchport mode trunk\nswitchport trunk allowed vlan 10,20,999\nswitchport trunk\
+    \ native vlan 999\n\n== 5\nsetup a dhcp server on A1 for vlan 10 and 20. The gateway\
+    \ ip is always 10.2.vlan.1\nadd a vlan interface if neccesary\nmake G0/2 on A1\
+    \ a access port for vlan 10\nmake G0/3 on A1 a access port for vlan 20\nrequest\
+    \ a ip address on UB0 and UB1 using the command `sudo dhclient ens2`\n\n== 6\n\
+    on D1 and D2, setup hsrp v2 for vlan 10. Use 10.2.10.1 as VIP for IPv4 and set\
+    \ the IPv6 VIP to autoconfig\non D1 and D2, setup vrrp v3 for vlan 10. Use 10.2.20.1\
+    \ as VIP for IPv4 and set the IPv6 VIP to FE80::1\n\nperform ping tests to the\
+    \ gateway on UB0 and UB1\n\n== 7\non D1 and D2 setup routed ports towards R1.\
+    \ Use the correct ip addresses\n\n== 8\nsetup ospfv3 area0 between R1 and R-EDGE-1\n\
+    setup ospfv3 area2 between R1 and D1\nsetup ospfv3 area2 between R1 and D2\n\n\
+    let R-EDGE-1 propagate its default gateway\nSummarize network 10.2.0.0/16 and\
+    \ 2001:db8:2::/48 on R1\n\n== 9\nsetup EBGP between R-EDGE-1 and R-INTERNET using\
+    \ address families\nadd the networks from Lo0 to BGP on R-INTERNET\nredistribute\
+    \ the ospf networks on R-EDGE-1 into BGP\n\ndo a ping test from UB1 to the addresses\
+    \ on Lo0 on R-INTERNET\n\n== 10\nsetup EBGP between R-EDGE-1 and R-EDGE-2 using\
+    \ address families\nadvertise the network 10.4.100.0/30 and 2001:db8:4:100::/80\
+    \ on R-EDGE-2\n\nsetup a default static route on R2 pointing to R-EDGE-2 for ipv4\
+    \ and ipv6\n\ndo a ping test from R1 to R2\n\n== 11\nsetup an ipsec VTI tunnel\
+    \ between R1 and R2 using the 10.200.0.0/30 and 2001:db8:200:1::/64 network\n\n\
+    for phase 1 use sha256, 3600 seconds, DH14 and aes 256 with a psk\nfor phase 2\
+    \ use esp-aes 256 and esp-sha-hmac\nthe psk for both peers is ciscocisco\n\n==\
+    \ 12\nsetup ospfv3 between R1 and R2 using the ipsec VTI tunnel\nsummarize the\
+    \ 10.4.0.0/16 and 2001:db8:4::/48 network on R2\n\n== 13\n\nsetup outbound filters\
+    \ on R-EDGE-1 to accomplish the following\n- make sure that we can not become\
+    \ a transit network using an as-path list\n- do not advertise the 10.4.0.0/16\
+    \ and 2001:db8:4::/48 network using a prefix-list\n\nuse a route map to set the\
+    \ local preference of routes coming from R-INTERNET to 250\n"
+  notes: ''
+  title: ENCOR topics - clean start
+  version: 0.0.5
+nodes:
+  - id: n0
+    label: R-EDGE-1
+    node_definition: iosv
+    x: 492
+    y: 228
+    configuration: |-
+      Building configuration...
+
+      Current configuration : 3376 bytes
+      !
+      ! Last configuration change at 15:21:58 UTC Sat May 14 2022
+      !
+      version 15.9
+      service timestamps debug datetime msec
+      service timestamps log datetime msec
+      no service password-encryption
+      !
+      hostname R-EDGE-1
+      !
+      boot-start-marker
+      boot-end-marker
+      !
+      !
+      no logging console
+      !
+      no aaa new-model
+      !
+      !
+      !
+      mmi polling-interval 60
+      no mmi auto-configure
+      no mmi pvc
+      mmi snmp-timeout 180
+      !
+      !
+      !
+      !
+      !
+      !
+      !
+      !
+      !
+      !
+      !
+      no ip domain lookup
+      ip cef
+      ipv6 unicast-routing
+      ipv6 cef
+      !
+      multilink bundle-name authenticated
+      !
+      !
+      !
+      !
+      !
+      redundancy
+      !
+      !
+      !
+      !
+      !
+      !
+      !
+      !
+      !
+      !
+      !
+      !
+      !
+      !
+      !
+      interface GigabitEthernet0/0
+       ip address 203.0.113.1 255.255.255.252
+       duplex auto
+       speed auto
+       media-type rj45
+       ipv6 address FE80::1 link-local
+       ipv6 address 2001:DB8:0:113::1/64
+      !
+      interface GigabitEthernet0/1
+       ip address 10.2.100.1 255.255.255.252
+       duplex auto
+       speed auto
+       media-type rj45
+       ipv6 address FE80::1 link-local
+       ipv6 address 2001:DB8:2:100::1/80
+      !
+      interface GigabitEthernet0/2
+       ip address 198.51.100.1 255.255.255.252
+       duplex auto
+       speed auto
+       media-type rj45
+       ipv6 address FE80::1 link-local
+       ipv6 address 2001:DB8:0:198::1/64
+      !
+      interface GigabitEthernet0/3
+       no ip address
+       shutdown
+       duplex auto
+       speed auto
+       media-type rj45
+      !
+      ip forward-protocol nd
+      !
+      !
+      no ip http server
+      no ip http secure-server
+      !
+      ipv6 ioam timestamp
+      !
+      !
+      !
+      control-plane
+      !
+      banner exec ^C
+      **************************************************************************
+      * IOSv is strictly limited to use for evaluation, demonstration and IOS  *
+      * education. IOSv is provided as-is and is not supported by Cisco's      *
+      * Technical Advisory Center. Any use or disclosure, in whole or in part, *
+      * of the IOSv Software or Documentation to any third party for any       *
+      * purposes is expressly prohibited except as otherwise authorized by     *
+      * Cisco in writing.                                                      *
+      **************************************************************************^C
+      banner incoming ^C
+      **************************************************************************
+      * IOSv is strictly limited to use for evaluation, demonstration and IOS  *
+      * education. IOSv is provided as-is and is not supported by Cisco's      *
+      * Technical Advisory Center. Any use or disclosure, in whole or in part, *
+      * of the IOSv Software or Documentation to any third party for any       *
+      * purposes is expressly prohibited except as otherwise authorized by     *
+      * Cisco in writing.                                                      *
+      **************************************************************************^C
+      banner login ^C
+      **************************************************************************
+      * IOSv is strictly limited to use for evaluation, demonstration and IOS  *
+      * education. IOSv is provided as-is and is not supported by Cisco's      *
+      * Technical Advisory Center. Any use or disclosure, in whole or in part, *
+      * of the IOSv Software or Documentation to any third party for any       *
+      * purposes is expressly prohibited except as otherwise authorized by     *
+      * Cisco in writing.                                                      *
+      **************************************************************************^C
+      !
+      line con 0
+       exec-timeout 0 0
+      line aux 0
+      line vty 0 4
+       exec-timeout 0 0
+       logging synchronous
+       login
+       transport input none
+      line vty 5 15
+       exec-timeout 0 0
+       logging synchronous
+       login
+       transport input none
+      !
+      no scheduler allocate
+      !
+      end
+    hide_links: false
+    ram: 512
+    cpus: 0
+    cpu_limit: 100
+    data_volume: 0
+    boot_disk_size: 0
+    tags: []
+    interfaces:
+      - id: i0
+        label: Loopback0
+        type: loopback
+      - id: i1
+        slot: 0
+        label: GigabitEthernet0/0
+        type: physical
+      - id: i2
+        slot: 1
+        label: GigabitEthernet0/1
+        type: physical
+      - id: i3
+        slot: 2
+        label: GigabitEthernet0/2
+        type: physical
+      - id: i4
+        slot: 3
+        label: GigabitEthernet0/3
+        type: physical
+  - id: n1
+    label: R-EDGE-2
+    node_definition: iosv
+    x: 647
+    y: 229
+    configuration: |-
+      Building configuration...
+
+      Current configuration : 3292 bytes
+      !
+      ! Last configuration change at 15:22:09 UTC Sat May 14 2022
+      !
+      version 15.9
+      service timestamps debug datetime msec
+      service timestamps log datetime msec
+      no service password-encryption
+      !
+      hostname R-EDGE-2
+      !
+      boot-start-marker
+      boot-end-marker
+      !
+      !
+      no logging console
+      !
+      no aaa new-model
+      !
+      !
+      !
+      mmi polling-interval 60
+      no mmi auto-configure
+      no mmi pvc
+      mmi snmp-timeout 180
+      !
+      !
+      !
+      !
+      !
+      !
+      !
+      !
+      !
+      !
+      !
+      no ip domain lookup
+      ip cef
+      ipv6 unicast-routing
+      ipv6 cef
+      !
+      multilink bundle-name authenticated
+      !
+      !
+      !
+      !
+      !
+      redundancy
+      !
+      !
+      !
+      !
+      !
+      !
+      !
+      !
+      !
+      !
+      !
+      !
+      !
+      !
+      !
+      interface GigabitEthernet0/0
+       ip address 203.0.113.2 255.255.255.252
+       duplex auto
+       speed auto
+       media-type rj45
+       ipv6 address FE80::2 link-local
+       ipv6 address 2001:DB8:0:113::2/64
+      !
+      interface GigabitEthernet0/1
+       ip address 10.4.100.1 255.255.255.252
+       duplex auto
+       speed auto
+       media-type rj45
+       ipv6 address FE80::1 link-local
+       ipv6 address 2001:DB8:4:100::1/80
+      !
+      interface GigabitEthernet0/2
+       no ip address
+       shutdown
+       duplex auto
+       speed auto
+       media-type rj45
+      !
+      interface GigabitEthernet0/3
+       no ip address
+       shutdown
+       duplex auto
+       speed auto
+       media-type rj45
+      !
+      ip forward-protocol nd
+      !
+      !
+      no ip http server
+      no ip http secure-server
+      !
+      ipv6 ioam timestamp
+      !
+      !
+      !
+      control-plane
+      !
+      banner exec ^C
+      **************************************************************************
+      * IOSv is strictly limited to use for evaluation, demonstration and IOS  *
+      * education. IOSv is provided as-is and is not supported by Cisco's      *
+      * Technical Advisory Center. Any use or disclosure, in whole or in part, *
+      * of the IOSv Software or Documentation to any third party for any       *
+      * purposes is expressly prohibited except as otherwise authorized by     *
+      * Cisco in writing.                                                      *
+      **************************************************************************^C
+      banner incoming ^C
+      **************************************************************************
+      * IOSv is strictly limited to use for evaluation, demonstration and IOS  *
+      * education. IOSv is provided as-is and is not supported by Cisco's      *
+      * Technical Advisory Center. Any use or disclosure, in whole or in part, *
+      * of the IOSv Software or Documentation to any third party for any       *
+      * purposes is expressly prohibited except as otherwise authorized by     *
+      * Cisco in writing.                                                      *
+      **************************************************************************^C
+      banner login ^C
+      **************************************************************************
+      * IOSv is strictly limited to use for evaluation, demonstration and IOS  *
+      * education. IOSv is provided as-is and is not supported by Cisco's      *
+      * Technical Advisory Center. Any use or disclosure, in whole or in part, *
+      * of the IOSv Software or Documentation to any third party for any       *
+      * purposes is expressly prohibited except as otherwise authorized by     *
+      * Cisco in writing.                                                      *
+      **************************************************************************^C
+      !
+      line con 0
+       exec-timeout 0 0
+      line aux 0
+      line vty 0 4
+       exec-timeout 0 0
+       logging synchronous
+       login
+       transport input none
+      line vty 5 15
+       exec-timeout 0 0
+       logging synchronous
+       login
+       transport input none
+      !
+      no scheduler allocate
+      !
+      end
+    hide_links: false
+    ram: 512
+    cpus: 0
+    cpu_limit: 100
+    data_volume: 0
+    boot_disk_size: 0
+    tags: []
+    interfaces:
+      - id: i0
+        label: Loopback0
+        type: loopback
+      - id: i1
+        slot: 0
+        label: GigabitEthernet0/0
+        type: physical
+      - id: i2
+        slot: 1
+        label: GigabitEthernet0/1
+        type: physical
+      - id: i3
+        slot: 2
+        label: GigabitEthernet0/2
+        type: physical
+      - id: i4
+        slot: 3
+        label: GigabitEthernet0/3
+        type: physical
+  - id: n2
+    label: R2
+    node_definition: iosv
+    x: 798
+    y: 227
+    configuration: |-
+      Building configuration...
+
+      Current configuration : 3291 bytes
+      !
+      ! Last configuration change at 15:22:11 UTC Sat May 14 2022
+      !
+      version 15.9
+      service timestamps debug datetime msec
+      service timestamps log datetime msec
+      no service password-encryption
+      !
+      hostname R2
+      !
+      boot-start-marker
+      boot-end-marker
+      !
+      !
+      no logging console
+      !
+      no aaa new-model
+      !
+      !
+      !
+      mmi polling-interval 60
+      no mmi auto-configure
+      no mmi pvc
+      mmi snmp-timeout 180
+      !
+      !
+      !
+      !
+      !
+      !
+      !
+      !
+      !
+      !
+      !
+      no ip domain lookup
+      ip cef
+      ipv6 unicast-routing
+      ipv6 cef
+      !
+      multilink bundle-name authenticated
+      !
+      !
+      !
+      !
+      !
+      redundancy
+      !
+      !
+      !
+      !
+      !
+      !
+      !
+      !
+      !
+      !
+      !
+      !
+      !
+      !
+      !
+      interface Loopback0
+       ip address 10.4.0.1 255.255.255.0
+       ipv6 address 2001:DB8:4::1/64
+      !
+      interface GigabitEthernet0/0
+       no ip address
+       shutdown
+       duplex auto
+       speed auto
+       media-type rj45
+      !
+      interface GigabitEthernet0/1
+       ip address 10.4.100.2 255.255.255.252
+       duplex auto
+       speed auto
+       media-type rj45
+       ipv6 address FE80::2 link-local
+       ipv6 address 2001:DB8:4:100::2/80
+      !
+      interface GigabitEthernet0/2
+       no ip address
+       shutdown
+       duplex auto
+       speed auto
+       media-type rj45
+      !
+      interface GigabitEthernet0/3
+       no ip address
+       shutdown
+       duplex auto
+       speed auto
+       media-type rj45
+      !
+      ip forward-protocol nd
+      !
+      !
+      no ip http server
+      no ip http secure-server
+      !
+      ipv6 ioam timestamp
+      !
+      !
+      !
+      control-plane
+      !
+      banner exec ^C
+      **************************************************************************
+      * IOSv is strictly limited to use for evaluation, demonstration and IOS  *
+      * education. IOSv is provided as-is and is not supported by Cisco's      *
+      * Technical Advisory Center. Any use or disclosure, in whole or in part, *
+      * of the IOSv Software or Documentation to any third party for any       *
+      * purposes is expressly prohibited except as otherwise authorized by     *
+      * Cisco in writing.                                                      *
+      **************************************************************************^C
+      banner incoming ^C
+      **************************************************************************
+      * IOSv is strictly limited to use for evaluation, demonstration and IOS  *
+      * education. IOSv is provided as-is and is not supported by Cisco's      *
+      * Technical Advisory Center. Any use or disclosure, in whole or in part, *
+      * of the IOSv Software or Documentation to any third party for any       *
+      * purposes is expressly prohibited except as otherwise authorized by     *
+      * Cisco in writing.                                                      *
+      **************************************************************************^C
+      banner login ^C
+      **************************************************************************
+      * IOSv is strictly limited to use for evaluation, demonstration and IOS  *
+      * education. IOSv is provided as-is and is not supported by Cisco's      *
+      * Technical Advisory Center. Any use or disclosure, in whole or in part, *
+      * of the IOSv Software or Documentation to any third party for any       *
+      * purposes is expressly prohibited except as otherwise authorized by     *
+      * Cisco in writing.                                                      *
+      **************************************************************************^C
+      !
+      line con 0
+       exec-timeout 0 0
+      line aux 0
+      line vty 0 4
+       exec-timeout 0 0
+       logging synchronous
+       login
+       transport input none
+      line vty 5 15
+       exec-timeout 0 0
+       logging synchronous
+       login
+       transport input none
+      !
+      no scheduler allocate
+      !
+      end
+    hide_links: false
+    ram: 512
+    cpus: 0
+    cpu_limit: 100
+    data_volume: 0
+    boot_disk_size: 0
+    tags: []
+    interfaces:
+      - id: i0
+        label: Loopback0
+        type: loopback
+      - id: i1
+        slot: 0
+        label: GigabitEthernet0/0
+        type: physical
+      - id: i2
+        slot: 1
+        label: GigabitEthernet0/1
+        type: physical
+      - id: i3
+        slot: 2
+        label: GigabitEthernet0/2
+        type: physical
+      - id: i4
+        slot: 3
+        label: GigabitEthernet0/3
+        type: physical
+  - id: n3
+    label: D1
+    node_definition: nxosv9000
+    x: 237
+    y: 350
+    configuration: |2-
+
+      !Command: show running-config
+      !Running configuration last done at: Sat May 14 15:24:13 2022
+      !Time: Sat May 14 15:24:13 2022
+
+      version 9.3(8) Bios:version
+      hostname D1
+      vdc D1 id 1
+        limit-resource vlan minimum 16 maximum 4094
+        limit-resource vrf minimum 2 maximum 4096
+        limit-resource port-channel minimum 0 maximum 511
+        limit-resource u4route-mem minimum 248 maximum 248
+        limit-resource u6route-mem minimum 96 maximum 96
+        limit-resource m4route-mem minimum 58 maximum 58
+        limit-resource m6route-mem minimum 8 maximum 8
+
+      no password strength-check
+      username admin password 5 $5$BPLBMI$67ui2MA9tsHlFK.mJ.u2wpaOF2ZSAHqLr0CavJq6JS/  role network-admin
+      username cisco password 5 $5$KEAPEP$COeydFCt6lmoO.3Gq5TClU.lu1g5HVfFPp4PpJk7Hm7  role network-admin
+      username cisco passphrase  lifetime 99999 warntime 14 gracetime 3
+      ip domain-lookup
+      snmp-server user admin network-admin auth md5 21745A9D3AC4C5F3A52AC6C53B87DB9047A6 priv 321C72E34AE9DABFE524CECB31D0D4B656E7 localizedV2key
+      snmp-server user cisco network-admin auth md5 207F5A84288DA7B8AC3FCFE873CED6AF54F2 priv 0070118A24D6BFD4BC0999856196DBAA44B4 localizedV2key
+      rmon event 1 log trap public description FATAL(1) owner PMON@FATAL
+      rmon event 2 log trap public description CRITICAL(2) owner PMON@CRITICAL
+      rmon event 3 log trap public description ERROR(3) owner PMON@ERROR
+      rmon event 4 log trap public description WARNING(4) owner PMON@WARNING
+      rmon event 5 log trap public description INFORMATION(5) owner PMON@INFO
+
+      vlan 1
+
+      vrf context management
+
+      interface Ethernet1/1
+
+      interface Ethernet1/2
+
+      interface Ethernet1/3
+
+      interface Ethernet1/4
+
+      interface Ethernet1/5
+
+      interface Ethernet1/6
+
+      interface Ethernet1/7
+
+      interface Ethernet1/8
+
+      interface Ethernet1/9
+
+      interface Ethernet1/10
+
+      interface Ethernet1/11
+
+      interface Ethernet1/12
+
+      interface Ethernet1/13
+
+      interface Ethernet1/14
+
+      interface Ethernet1/15
+
+      interface Ethernet1/16
+
+      interface Ethernet1/17
+
+      interface Ethernet1/18
+
+      interface Ethernet1/19
+
+      interface Ethernet1/20
+
+      interface Ethernet1/21
+
+      interface Ethernet1/22
+
+      interface Ethernet1/23
+
+      interface Ethernet1/24
+
+      interface Ethernet1/25
+
+      interface Ethernet1/26
+
+      interface Ethernet1/27
+
+      interface Ethernet1/28
+
+      interface Ethernet1/29
+
+      interface Ethernet1/30
+
+      interface Ethernet1/31
+
+      interface Ethernet1/32
+
+      interface Ethernet1/33
+
+      interface Ethernet1/34
+
+      interface Ethernet1/35
+
+      interface Ethernet1/36
+
+      interface Ethernet1/37
+
+      interface Ethernet1/38
+
+      interface Ethernet1/39
+
+      interface Ethernet1/40
+
+      interface Ethernet1/41
+
+      interface Ethernet1/42
+
+      interface Ethernet1/43
+
+      interface Ethernet1/44
+
+      interface Ethernet1/45
+
+      interface Ethernet1/46
+
+      interface Ethernet1/47
+
+      interface Ethernet1/48
+
+      interface Ethernet1/49
+
+      interface Ethernet1/50
+
+      interface Ethernet1/51
+
+      interface Ethernet1/52
+
+      interface Ethernet1/53
+
+      interface Ethernet1/54
+
+      interface Ethernet1/55
+
+      interface Ethernet1/56
+
+      interface Ethernet1/57
+
+      interface Ethernet1/58
+
+      interface Ethernet1/59
+
+      interface Ethernet1/60
+
+      interface Ethernet1/61
+
+      interface Ethernet1/62
+
+      interface Ethernet1/63
+
+      interface Ethernet1/64
+
+      interface mgmt0
+        vrf member management
+      icam monitor scale
+
+      line console
+        exec-timeout 0
+      line vty
+        exec-timeout 0
+      boot nxos bootflash:/nxos.9.3.8.bin sup-1
+
+      no logging console
+    hide_links: false
+    ram: 8192
+    cpus: 2
+    cpu_limit: 100
+    data_volume: 0
+    boot_disk_size: 0
+    tags: []
+    interfaces:
+      - id: i0
+        label: Loopback0
+        type: loopback
+      - id: i1
+        slot: 0
+        label: mgmt0
+        type: physical
+      - id: i2
+        slot: 1
+        label: Ethernet1/1
+        type: physical
+      - id: i3
+        slot: 2
+        label: Ethernet1/2
+        type: physical
+      - id: i4
+        slot: 3
+        label: Ethernet1/3
+        type: physical
+      - id: i5
+        slot: 4
+        label: Ethernet1/4
+        type: physical
+  - id: n4
+    label: D2
+    node_definition: nxosv9000
+    x: 427
+    y: 353
+    configuration: |2-
+
+      !Command: show running-config
+      !Running configuration last done at: Sat May 14 15:24:17 2022
+      !Time: Sat May 14 15:24:18 2022
+
+      version 9.3(8) Bios:version
+      hostname D2
+      vdc D2 id 1
+        limit-resource vlan minimum 16 maximum 4094
+        limit-resource vrf minimum 2 maximum 4096
+        limit-resource port-channel minimum 0 maximum 511
+        limit-resource u4route-mem minimum 248 maximum 248
+        limit-resource u6route-mem minimum 96 maximum 96
+        limit-resource m4route-mem minimum 58 maximum 58
+        limit-resource m6route-mem minimum 8 maximum 8
+
+      no password strength-check
+      username admin password 5 $5$JONKPL$41N1YE.4mtnIzmeO5p3mgUDoa/UUB/VNPU.PuM1voL9  role network-admin
+      username cisco password 5 $5$AANCHO$Buyv0bV0NmoEnWb/IY0.FuBL0ZbK6ujNlxIrcrziD/7  role network-admin
+      username cisco passphrase  lifetime 99999 warntime 14 gracetime 3
+      ip domain-lookup
+      snmp-server user admin network-admin auth md5 2174025AA833B7F97A2CB617DFF4127054F6 priv 0050356D8D14FCA77B0EF075C8FD420B01A7 localizedV2key
+      snmp-server user cisco network-admin auth md5 521276648A14F0A62A74C702C8F8510759FE priv 01637C67C568DED17656C83187A84F141CE1 localizedV2key
+      rmon event 1 log trap public description FATAL(1) owner PMON@FATAL
+      rmon event 2 log trap public description CRITICAL(2) owner PMON@CRITICAL
+      rmon event 3 log trap public description ERROR(3) owner PMON@ERROR
+      rmon event 4 log trap public description WARNING(4) owner PMON@WARNING
+      rmon event 5 log trap public description INFORMATION(5) owner PMON@INFO
+
+      vlan 1
+
+      vrf context management
+
+      interface Ethernet1/1
+
+      interface Ethernet1/2
+
+      interface Ethernet1/3
+
+      interface Ethernet1/4
+
+      interface Ethernet1/5
+
+      interface Ethernet1/6
+
+      interface Ethernet1/7
+
+      interface Ethernet1/8
+
+      interface Ethernet1/9
+
+      interface Ethernet1/10
+
+      interface Ethernet1/11
+
+      interface Ethernet1/12
+
+      interface Ethernet1/13
+
+      interface Ethernet1/14
+
+      interface Ethernet1/15
+
+      interface Ethernet1/16
+
+      interface Ethernet1/17
+
+      interface Ethernet1/18
+
+      interface Ethernet1/19
+
+      interface Ethernet1/20
+
+      interface Ethernet1/21
+
+      interface Ethernet1/22
+
+      interface Ethernet1/23
+
+      interface Ethernet1/24
+
+      interface Ethernet1/25
+
+      interface Ethernet1/26
+
+      interface Ethernet1/27
+
+      interface Ethernet1/28
+
+      interface Ethernet1/29
+
+      interface Ethernet1/30
+
+      interface Ethernet1/31
+
+      interface Ethernet1/32
+
+      interface Ethernet1/33
+
+      interface Ethernet1/34
+
+      interface Ethernet1/35
+
+      interface Ethernet1/36
+
+      interface Ethernet1/37
+
+      interface Ethernet1/38
+
+      interface Ethernet1/39
+
+      interface Ethernet1/40
+
+      interface Ethernet1/41
+
+      interface Ethernet1/42
+
+      interface Ethernet1/43
+
+      interface Ethernet1/44
+
+      interface Ethernet1/45
+
+      interface Ethernet1/46
+
+      interface Ethernet1/47
+
+      interface Ethernet1/48
+
+      interface Ethernet1/49
+
+      interface Ethernet1/50
+
+      interface Ethernet1/51
+
+      interface Ethernet1/52
+
+      interface Ethernet1/53
+
+      interface Ethernet1/54
+
+      interface Ethernet1/55
+
+      interface Ethernet1/56
+
+      interface Ethernet1/57
+
+      interface Ethernet1/58
+
+      interface Ethernet1/59
+
+      interface Ethernet1/60
+
+      interface Ethernet1/61
+
+      interface Ethernet1/62
+
+      interface Ethernet1/63
+
+      interface Ethernet1/64
+
+      interface mgmt0
+        vrf member management
+      icam monitor scale
+
+      line console
+        exec-timeout 0
+      line vty
+        exec-timeout 0
+      boot nxos bootflash:/nxos.9.3.8.bin sup-1
+
+      no logging console
+    hide_links: false
+    ram: 8192
+    cpus: 2
+    cpu_limit: 100
+    data_volume: 0
+    boot_disk_size: 0
+    tags: []
+    interfaces:
+      - id: i0
+        label: Loopback0
+        type: loopback
+      - id: i1
+        slot: 0
+        label: mgmt0
+        type: physical
+      - id: i2
+        slot: 1
+        label: Ethernet1/1
+        type: physical
+      - id: i3
+        slot: 2
+        label: Ethernet1/2
+        type: physical
+      - id: i4
+        slot: 3
+        label: Ethernet1/3
+        type: physical
+      - id: i5
+        slot: 4
+        label: Ethernet1/4
+        type: physical
+  - id: n5
+    label: R1
+    node_definition: iosv
+    x: 338
+    y: 230
+    configuration: |-
+      Building configuration...
+
+      Current configuration : 3222 bytes
+      !
+      ! Last configuration change at 15:22:08 UTC Sat May 14 2022
+      !
+      version 15.9
+      service timestamps debug datetime msec
+      service timestamps log datetime msec
+      no service password-encryption
+      !
+      hostname R1
+      !
+      boot-start-marker
+      boot-end-marker
+      !
+      !
+      no logging console
+      !
+      no aaa new-model
+      !
+      !
+      !
+      mmi polling-interval 60
+      no mmi auto-configure
+      no mmi pvc
+      mmi snmp-timeout 180
+      !
+      !
+      !
+      !
+      !
+      !
+      !
+      !
+      !
+      !
+      !
+      ip cef
+      no ipv6 cef
+      !
+      multilink bundle-name authenticated
+      !
+      !
+      !
+      !
+      !
+      redundancy
+      !
+      !
+      !
+      !
+      !
+      !
+      !
+      !
+      !
+      !
+      !
+      !
+      !
+      !
+      !
+      interface GigabitEthernet0/0
+       no ip address
+       shutdown
+       duplex auto
+       speed auto
+       media-type rj45
+      !
+      interface GigabitEthernet0/1
+       ip address 10.2.100.2 255.255.255.252
+       duplex auto
+       speed auto
+       media-type rj45
+       ipv6 address FE80::2 link-local
+       ipv6 address 2001:DB8:2:100::2/80
+      !
+      interface GigabitEthernet0/2
+       ip address 10.2.100.5 255.255.255.252
+       duplex auto
+       speed auto
+       media-type rj45
+       ipv6 address FE80::1 link-local
+       ipv6 address 2001:DB8:2:100:1::1/80
+      !
+      interface GigabitEthernet0/3
+       ip address 10.2.100.9 255.255.255.252
+       duplex auto
+       speed auto
+       media-type rj45
+       ipv6 address FE80::1 link-local
+       ipv6 address 2001:DB8:2:100:2::1/80
+      !
+      ip forward-protocol nd
+      !
+      !
+      no ip http server
+      no ip http secure-server
+      !
+      ipv6 ioam timestamp
+      !
+      !
+      !
+      control-plane
+      !
+      banner exec ^C
+      **************************************************************************
+      * IOSv is strictly limited to use for evaluation, demonstration and IOS  *
+      * education. IOSv is provided as-is and is not supported by Cisco's      *
+      * Technical Advisory Center. Any use or disclosure, in whole or in part, *
+      * of the IOSv Software or Documentation to any third party for any       *
+      * purposes is expressly prohibited except as otherwise authorized by     *
+      * Cisco in writing.                                                      *
+      **************************************************************************^C
+      banner incoming ^C
+      **************************************************************************
+      * IOSv is strictly limited to use for evaluation, demonstration and IOS  *
+      * education. IOSv is provided as-is and is not supported by Cisco's      *
+      * Technical Advisory Center. Any use or disclosure, in whole or in part, *
+      * of the IOSv Software or Documentation to any third party for any       *
+      * purposes is expressly prohibited except as otherwise authorized by     *
+      * Cisco in writing.                                                      *
+      **************************************************************************^C
+      banner login ^C
+      **************************************************************************
+      * IOSv is strictly limited to use for evaluation, demonstration and IOS  *
+      * education. IOSv is provided as-is and is not supported by Cisco's      *
+      * Technical Advisory Center. Any use or disclosure, in whole or in part, *
+      * of the IOSv Software or Documentation to any third party for any       *
+      * purposes is expressly prohibited except as otherwise authorized by     *
+      * Cisco in writing.                                                      *
+      **************************************************************************^C
+      !
+      line con 0
+       exec-timeout 0 0
+      line aux 0
+      line vty 0 4
+       login
+       transport input none
+      !
+      no scheduler allocate
+      !
+      end
+    hide_links: false
+    ram: 512
+    cpus: 0
+    cpu_limit: 100
+    data_volume: 0
+    boot_disk_size: 0
+    tags: []
+    interfaces:
+      - id: i0
+        label: Loopback0
+        type: loopback
+      - id: i1
+        slot: 0
+        label: GigabitEthernet0/0
+        type: physical
+      - id: i2
+        slot: 1
+        label: GigabitEthernet0/1
+        type: physical
+      - id: i3
+        slot: 2
+        label: GigabitEthernet0/2
+        type: physical
+      - id: i4
+        slot: 3
+        label: GigabitEthernet0/3
+        type: physical
+  - id: n6
+    label: A1
+    node_definition: iosvl2
+    x: 332
+    y: 482
+    configuration: |-
+      Building configuration...
+
+      Current configuration : 2777 bytes
+      !
+      ! Last configuration change at 15:22:10 UTC Sat May 14 2022
+      !
+      version 15.2
+      service timestamps debug datetime msec
+      service timestamps log datetime msec
+      no service password-encryption
+      service compress-config
+      !
+      hostname A1
+      !
+      boot-start-marker
+      boot-end-marker
+      !
+      !
+      no logging console
+      !
+      no aaa new-model
+      !
+      !
+      !
+      !
+      !
+      !
+      !
+      !
+      no ip domain-lookup
+      ip cef
+      no ipv6 cef
+      !
+      !
+      !
+      spanning-tree mode pvst
+      spanning-tree extend system-id
+      !
+      !
+      !
+      !
+      !
+      !
+      !
+      !
+      !
+      !
+      !
+      !
+      !
+      !
+      !
+      interface GigabitEthernet0/0
+       negotiation auto
+      !
+      interface GigabitEthernet0/1
+       negotiation auto
+      !
+      interface GigabitEthernet0/2
+       negotiation auto
+      !
+      interface GigabitEthernet0/3
+       negotiation auto
+      !
+      ip forward-protocol nd
+      !
+      ip http server
+      ip http secure-server
+      !
+      ip ssh server algorithm encryption aes128-ctr aes192-ctr aes256-ctr
+      ip ssh client algorithm encryption aes128-ctr aes192-ctr aes256-ctr
+      !
+      !
+      !
+      !
+      !
+      !
+      control-plane
+      !
+      banner exec ^C
+      IOSv - Cisco Systems Confidential -
+
+      Supplemental End User License Restrictions
+
+      This IOSv software is provided AS-IS without warranty of any kind. Under no circumstances may this software be used separate from the Cisco Modeling Labs Software that this software was provided with, or deployed or used as part of a production environment.
+
+      By using the software, you agree to abide by the terms and conditions of the Cisco End User License Agreement at http://www.cisco.com/go/eula. Unauthorized use or distribution of this software is expressly prohibited.
+      ^C
+      banner incoming ^C
+      IOSv - Cisco Systems Confidential -
+
+      Supplemental End User License Restrictions
+
+      This IOSv software is provided AS-IS without warranty of any kind. Under no circumstances may this software be used separate from the Cisco Modeling Labs Software that this software was provided with, or deployed or used as part of a production environment.
+
+      By using the software, you agree to abide by the terms and conditions of the Cisco End User License Agreement at http://www.cisco.com/go/eula. Unauthorized use or distribution of this software is expressly prohibited.
+      ^C
+      banner login ^C
+      IOSv - Cisco Systems Confidential -
+
+      Supplemental End User License Restrictions
+
+      This IOSv software is provided AS-IS without warranty of any kind. Under no circumstances may this software be used separate from the Cisco Modeling Labs Software that this software was provided with, or deployed or used as part of a production environment.
+
+      By using the software, you agree to abide by the terms and conditions of the Cisco End User License Agreement at http://www.cisco.com/go/eula. Unauthorized use or distribution of this software is expressly prohibited.
+      ^C
+      !
+      line con 0
+       exec-timeout 0 0
+      line aux 0
+      line vty 0 4
+       exec-timeout 0 0
+       logging synchronous
+       login
+      line vty 5 15
+       exec-timeout 0 0
+       logging synchronous
+       login
+      !
+      !
+      end
+    hide_links: false
+    ram: 768
+    cpus: 0
+    cpu_limit: 100
+    data_volume: 0
+    boot_disk_size: 0
+    tags: []
+    interfaces:
+      - id: i0
+        label: Loopback0
+        type: loopback
+      - id: i1
+        slot: 0
+        label: GigabitEthernet0/0
+        type: physical
+      - id: i2
+        slot: 1
+        label: GigabitEthernet0/1
+        type: physical
+      - id: i3
+        slot: 2
+        label: GigabitEthernet0/2
+        type: physical
+      - id: i4
+        slot: 3
+        label: GigabitEthernet0/3
+        type: physical
+  - id: n7
+    label: UB0
+    node_definition: ubuntu
+    x: 172
+    y: 483
+    configuration: |-
+      #cloud-config
+      hostname: inserthostname_here
+      manage_etc_hosts: True
+      system_info:
+        default_user:
+          name: cisco
+      password: cisco
+      chpasswd: { expire: False }
+      ssh_pwauth: True
+      ssh_authorized_keys:
+         - your-ssh-pubkey-line-goes-here
+    hide_links: false
+    ram: 2048
+    cpus: 1
+    cpu_limit: 100
+    data_volume: 0
+    boot_disk_size: 64
+    tags: []
+    interfaces:
+      - id: i0
+        slot: 0
+        label: ens2
+        type: physical
+  - id: n8
+    label: UB1
+    node_definition: ubuntu
+    x: 485
+    y: 478
+    configuration: |-
+      #cloud-config
+      hostname: inserthostname_here
+      manage_etc_hosts: True
+      system_info:
+        default_user:
+          name: cisco
+      password: cisco
+      chpasswd: { expire: False }
+      ssh_pwauth: True
+      ssh_authorized_keys:
+         - your-ssh-pubkey-line-goes-here
+    hide_links: false
+    ram: 2048
+    cpus: 1
+    cpu_limit: 100
+    data_volume: 0
+    boot_disk_size: 64
+    tags: []
+    interfaces:
+      - id: i0
+        slot: 0
+        label: ens2
+        type: physical
+  - id: n9
+    label: R-INTERNET
+    node_definition: iosv
+    x: 337
+    y: 93
+    configuration: |-
+      Building configuration...
+
+      Current configuration : 3323 bytes
+      !
+      ! Last configuration change at 15:22:12 UTC Sat May 14 2022
+      !
+      version 15.9
+      service timestamps debug datetime msec
+      service timestamps log datetime msec
+      no service password-encryption
+      !
+      hostname R-INTERNET
+      !
+      boot-start-marker
+      boot-end-marker
+      !
+      !
+      no logging console
+      !
+      no aaa new-model
+      !
+      !
+      !
+      mmi polling-interval 60
+      no mmi auto-configure
+      no mmi pvc
+      mmi snmp-timeout 180
+      !
+      !
+      !
+      !
+      !
+      !
+      !
+      !
+      !
+      !
+      !
+      no ip domain lookup
+      ip cef
+      no ipv6 cef
+      !
+      multilink bundle-name authenticated
+      !
+      !
+      !
+      !
+      !
+      redundancy
+      !
+      !
+      !
+      !
+      !
+      !
+      !
+      !
+      !
+      !
+      !
+      !
+      !
+      !
+      !
+      interface Loopback0
+       ip address 8.8.8.8 255.255.255.255
+       ipv6 address FE80::1 link-local
+       ipv6 address 2001:DB8:AAAA::8888/64
+      !
+      interface GigabitEthernet0/0
+       no ip address
+       shutdown
+       duplex auto
+       speed auto
+       media-type rj45
+      !
+      interface GigabitEthernet0/1
+       no ip address
+       shutdown
+       duplex auto
+       speed auto
+       media-type rj45
+      !
+      interface GigabitEthernet0/2
+       ip address 198.51.100.2 255.255.255.252
+       duplex auto
+       speed auto
+       media-type rj45
+       ipv6 address FE80::2 link-local
+       ipv6 address 2001:DB8:0:198::2/64
+      !
+      interface GigabitEthernet0/3
+       no ip address
+       shutdown
+       duplex auto
+       speed auto
+       media-type rj45
+      !
+      ip forward-protocol nd
+      !
+      !
+      no ip http server
+      no ip http secure-server
+      !
+      ipv6 ioam timestamp
+      !
+      !
+      !
+      control-plane
+      !
+      banner exec ^C
+      **************************************************************************
+      * IOSv is strictly limited to use for evaluation, demonstration and IOS  *
+      * education. IOSv is provided as-is and is not supported by Cisco's      *
+      * Technical Advisory Center. Any use or disclosure, in whole or in part, *
+      * of the IOSv Software or Documentation to any third party for any       *
+      * purposes is expressly prohibited except as otherwise authorized by     *
+      * Cisco in writing.                                                      *
+      **************************************************************************^C
+      banner incoming ^C
+      **************************************************************************
+      * IOSv is strictly limited to use for evaluation, demonstration and IOS  *
+      * education. IOSv is provided as-is and is not supported by Cisco's      *
+      * Technical Advisory Center. Any use or disclosure, in whole or in part, *
+      * of the IOSv Software or Documentation to any third party for any       *
+      * purposes is expressly prohibited except as otherwise authorized by     *
+      * Cisco in writing.                                                      *
+      **************************************************************************^C
+      banner login ^C
+      **************************************************************************
+      * IOSv is strictly limited to use for evaluation, demonstration and IOS  *
+      * education. IOSv is provided as-is and is not supported by Cisco's      *
+      * Technical Advisory Center. Any use or disclosure, in whole or in part, *
+      * of the IOSv Software or Documentation to any third party for any       *
+      * purposes is expressly prohibited except as otherwise authorized by     *
+      * Cisco in writing.                                                      *
+      **************************************************************************^C
+      !
+      line con 0
+       exec-timeout 0 0
+      line aux 0
+      line vty 0 4
+       exec-timeout 0 0
+       logging synchronous
+       login
+       transport input none
+      line vty 5 15
+       exec-timeout 0 0
+       logging synchronous
+       login
+       transport input none
+      !
+      no scheduler allocate
+      !
+      end
+    hide_links: false
+    ram: 512
+    cpus: 0
+    cpu_limit: 100
+    data_volume: 0
+    boot_disk_size: 0
+    tags: []
+    interfaces:
+      - id: i0
+        label: Loopback0
+        type: loopback
+      - id: i1
+        slot: 0
+        label: GigabitEthernet0/0
+        type: physical
+      - id: i2
+        slot: 1
+        label: GigabitEthernet0/1
+        type: physical
+      - id: i3
+        slot: 2
+        label: GigabitEthernet0/2
+        type: physical
+      - id: i4
+        slot: 3
+        label: GigabitEthernet0/3
+        type: physical
+links:
+  - id: l0
+    i1: i1
+    n1: n0
+    i2: i1
+    n2: n1
+    label: R-EDGE-1-GigabitEthernet0/0<->R-EDGE-2-GigabitEthernet0/0
+  - id: l1
+    i1: i2
+    n1: n1
+    i2: i2
+    n2: n2
+    label: R-EDGE-2-GigabitEthernet0/1<->R2-GigabitEthernet0/1
+  - id: l2
+    i1: i2
+    n1: n0
+    i2: i2
+    n2: n5
+    label: R-EDGE-1-GigabitEthernet0/1<->R1-GigabitEthernet0/1
+  - id: l3
+    i1: i2
+    n1: n3
+    i2: i3
+    n2: n5
+    label: D1-Ethernet1/1<->R1-GigabitEthernet0/2
+  - id: l4
+    i1: i2
+    n1: n4
+    i2: i4
+    n2: n5
+    label: D2-Ethernet1/1<->R1-GigabitEthernet0/3
+  - id: l5
+    i1: i4
+    n1: n3
+    i2: i4
+    n2: n4
+    label: D1-Ethernet1/3<->D2-Ethernet1/3
+  - id: l6
+    i1: i5
+    n1: n3
+    i2: i5
+    n2: n4
+    label: D1-Ethernet1/4<->D2-Ethernet1/4
+  - id: l7
+    i1: i3
+    n1: n3
+    i2: i1
+    n2: n6
+    label: D1-Ethernet1/2<->A1-GigabitEthernet0/0
+  - id: l8
+    i1: i3
+    n1: n4
+    i2: i2
+    n2: n6
+    label: D2-Ethernet1/2<->A1-GigabitEthernet0/1
+  - id: l9
+    i1: i3
+    n1: n6
+    i2: i0
+    n2: n7
+    label: A1-GigabitEthernet0/2<->UB0-ens2
+  - id: l10
+    i1: i4
+    n1: n6
+    i2: i0
+    n2: n8
+    label: A1-GigabitEthernet0/3<->UB1-ens2
+  - id: l11
+    i1: i3
+    n1: n0
+    i2: i3
+    n2: n9
+    label: R-EDGE-1-GigabitEthernet0/2<->R-INTERNET-GigabitEthernet0/2

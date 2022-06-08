@@ -1,0 +1,131 @@
+== NETWORKS ==
+R-EDGE1 <> R-EDGE-2
+	203.0.113.0/30
+    2001:db8:0:113::/64
+R-EDGE1 <> R-INTERNET
+    198.51.100.0/30
+    2001:db8:0:198::/64
+AREA 0
+    10.200.0.0/24
+    2001:db8:200::/64
+    IPSEC 
+        10.200.0.0/30
+        2001:db8:200:1::/64
+    R1 <> R-EDGE-1
+        10.200.0.4/30
+        2001:db8:200:2::/64
+AREA 2
+    10.2.0.0/16
+    2001:db8:2::/64
+    R1 <> R-EDGE-1
+        10.2.100.0/30
+        2001:db8:2:100::/80
+    R1 <> D1
+        10.2.100.4/30
+        2001:db8:2:100:1::/80
+    R1 <> D2
+        10.2.100.8/30
+        2001:db8:2:100:2::/80
+    VLAN 10
+        10.2.10.0/24
+        2001:db8:2:10::/64
+    VLAN 20
+        10.2.20.0/24
+        2001:db8:2:20::/64
+AREA 4
+    10.4.0.0/16
+    2001:db8:4::/64
+    R2 <> R-EDGE-2
+        10.4.100.0/30
+        2001:db8:4:100::/80
+
+== LAB INFO ==
+All interfaces have been configured on R1, R2, R-EDGE-1, R-EDGE-2 AND R-INTERNET
+D1, D2 and A1 have empty configs
+
+== 1
+setup ssh access on D1, D2 and A1
+
+== 2
+create vlans on D1, D2 and A1
+- vlan 10 IT
+- vlan 20 RND
+- vlan 999 NAT
+
+setup vlan interfaces for each vlan on D1 and D2
+10.2.vlan.252 on D1
+2001:db8:2:vlan::252/64 on D1
+
+10.2.vlan.253 on D2
+2001:db8:2:vlan::253/64 on D2
+
+== 3
+setup a etherchannel using interface Po1 between D1 and D2 using lacp
+
+setup trunks between D1, D2 and A1. Use the native vlan that was setup
+
+== 4
+setup a dhcp server on D1 for vlan 10 and 20. 
+the gateway ip is always 10.2.vlan.1
+exlude the gateway ip and the ip's of D1 and D2
+
+Configure A1
+make G0/2 on A1 a access port for vlan 10
+make G0/3 on A1 a access port for vlan 20
+request a ip address on UB0 and UB1 using the command `sudo dhclient ens2`
+
+== 5
+on D1 and D2, setup hsrp v2 for vlan 10. Use 10.2.10.1 as VIP for IPv4 and set the IPv6 VIP to autoconfig
+on D1 and D2, setup vrrp v3 for vlan 10. Use 10.2.20.1 as VIP for IPv4 and set the IPv6 VIP to FE80::1
+
+enable preemption and make D1 the primary router for vlan 10
+enable preemption and make D2 the primary router for vlan 20
+
+perform ping tests to the gateway on UB0 and UB1
+
+== 6
+on D1 and D2 setup routed ports towards R1. Use the correct ip addresses
+
+== 7
+setup ospfv3 area0 between R1 and R-EDGE-1
+setup ospfv3 area2 between R1 and D1
+setup ospfv3 area2 between R1 and D2
+
+let R-EDGE-1 propagate its default gateway
+Summarize network 10.2.0.0/16 and 2001:db8:2::/48 on R1
+
+== 8
+setup EBGP between R-EDGE-1 and R-INTERNET using address families
+add the networks from Lo0 to BGP on R-INTERNET
+redistribute the ospf networks on R-EDGE-1 into BGP
+
+do a ping test from UB1 to the addresses on Lo0 on R-INTERNET
+
+== 9
+setup EBGP between R-EDGE-1 and R-EDGE-2 using address families
+advertise the network 10.4.100.0/30 and 2001:db8:4:100::/80 on R-EDGE-2
+
+setup a default static route on R2 pointing to R-EDGE-2 for ipv4 and ipv6
+
+do a ping test from R1 to R2
+
+== 10
+setup an ipsec VTI tunnel between R1 and R2 using the 2001:db8:200:1::/64 network
+setup link-local addresses for both tunnel interfaces
+
+for phase 1 use sha256, 3600 seconds, DH14 and aes 256 with a psk
+for phase 2 use esp-aes 256 and esp-sha-hmac
+the psk for both peers is ciscocisco
+
+== 11
+setup ospfv3 between R1 and R2 using the ipsec VTI tunnel
+summarize the 10.4.0.0/16 and 2001:db8:4::/48 network on R2
+
+== 12
+setup outbound filters on R-EDGE-1 to accomplish the following
+- make sure that we can not become a transit network using an as-path list
+- do not advertise the 10.4.0.0/16 and 2001:db8:4::/48 network using a prefix-list
+
+use a route map for all inbound routes from R-INTERNET
+set the local preference of routes coming from R-INTERNET to 250
+add the no-export community to inbound routes on top of existing communities

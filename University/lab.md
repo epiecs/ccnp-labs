@@ -258,6 +258,12 @@ pat for both vrfs
 
 A remote office was added. Use one router with a loopback and ipsec. aaa rolout for the network
 
+use vrrp somewhere
+
+create span vlan
+
+send netflow to a collector
+
 # Phase 7
 
 Management has tasked you with a compliancy project. Use automation to achieve the following:
